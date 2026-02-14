@@ -43,6 +43,7 @@ Preferred communication style: Simple, everyday language.
 - **OpenAI (via Replit AI Integrations)**: Used for PCOS type analysis. Configured with `AI_INTEGRATIONS_OPENAI_API_KEY` and `AI_INTEGRATIONS_OPENAI_BASE_URL` environment variables
 - **Minimax AI - Meal Plans** (`server/minimax.ts`): Uses OpenAI-compatible client pointed at `api.minimax.chat/v1` for generating weekly meal plans personalized to PCOS type and cycle phase. Requires `MINIMAX_API_KEY`
 - **Minimax AI - Voice STT** (`server/minimax-stt.ts`): Speech-to-text transcription for voice symptom logging. Audio recorded on frontend via Web Audio API/MediaRecorder, sent as multipart to server, transcribed via Minimax audio transcription API
+- **BEM.ai - Fridge Scanner** (`server/bem-ai.ts`): Extracts structured grocery item data from fridge/pantry photos. Uses BEM.ai's transform function API with a custom schema. Auto-creates the function and workflow on first use, then processes images asynchronously with polling. Requires `BEM_AI_API_KEY`
 
 ### Real-time Features (Convex)
 - **Purpose**: Real-time grocery list syncing across devices

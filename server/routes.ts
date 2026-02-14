@@ -7,6 +7,7 @@ import { setupAuth, isAuthenticated, registerAuthRoutes } from "./replit_integra
 import OpenAI from "openai";
 import { generateWeeklyMealPlan } from "./minimax";
 import { transcribeAudio } from "./minimax-stt";
+import { scanFridgeWithBem } from "./bem-ai";
 import multer from "multer";
 
 const openai = new OpenAI({
@@ -295,7 +296,7 @@ export async function registerRoutes(
     }
   });
 
-  // 8. Fridge Scanner (OpenAI Vision)
+  // 8. Fridge Scanner (BEM.ai)
   const fridgeUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
   app.post("/api/fridge/scan", isAuthenticated, fridgeUpload.single("image"), async (req: any, res) => {
     try {
@@ -306,29 +307,8 @@ export async function registerRoutes(
       const userId = req.user.claims.sub;
       const profile = await storage.getPcosProfile(userId);
 
-      const base64Image = req.file.buffer.toString("base64");
       const mimeType = req.file.mimetype || "image/jpeg";
-
-      const visionResponse = await openai.chat.completions.create({
-        model: "gpt-5.1",
-        messages: [
-          {
-            role: "system",
-            content: `You are a grocery identification assistant for a PCOS health app. Analyze the fridge/pantry photo and identify all visible food items. For each item, provide the name, category, and an estimated quantity. Categories: protein, vegetable, fruit, grain, fat, spice, beverage, dairy, other. Return JSON: { "items": [{ "name": "string", "category": "string", "quantity": "string" }] }. Be specific with item names (e.g. "Greek Yogurt" not just "yogurt"). Only list items you can clearly identify.`,
-          },
-          {
-            role: "user",
-            content: [
-              { type: "text", text: "Identify all grocery items visible in this fridge/pantry photo." },
-              { type: "image_url", image_url: { url: `data:${mimeType};base64,${base64Image}` } },
-            ],
-          },
-        ],
-        response_format: { type: "json_object" },
-      });
-
-      const identified = JSON.parse(visionResponse.choices[0].message.content || '{"items":[]}');
-      const identifiedItems: Array<{ name: string; category: string; quantity: string }> = identified.items || [];
+      const identifiedItems = await scanFridgeWithBem(req.file.buffer, mimeType);
 
       let phase = "follicular";
       const pcosType = profile?.pcosType || "unknown";
