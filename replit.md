@@ -36,9 +36,10 @@ convex/
 ```
 
 ## Key Integrations
-1. **Minimax AI** (`server/minimax.ts`): Uses OpenAI-compatible API at `api.minimax.chat` for personalized meal plan generation based on PCOS type and cycle phase. Requires `MINIMAX_API_KEY` env var.
-2. **BEM CSS** (`client/src/styles/bem-components.css`): Custom component styles following Block-Element-Modifier methodology for CycleTracker, RecommendationCards, MealPlanCard, GroceryItem, and PcosBadge blocks.
-3. **Convex** (`convex/`): Real-time backend for grocery list syncing. Requires `VITE_CONVEX_URL` env var. Falls back to local state when not configured.
+1. **Minimax AI - Meal Plans** (`server/minimax.ts`): OpenAI-compatible API at `api.minimax.chat` for personalized meal plan generation. Requires `MINIMAX_API_KEY`.
+2. **Minimax AI - Voice STT** (`server/minimax-stt.ts`): Speech-to-text transcription for voice symptom input. Uses Minimax audio transcription API. Audio recorded via Web Audio API on frontend, sent as multipart form data.
+3. **BEM CSS** (`client/src/styles/bem-components.css`): Block-Element-Modifier methodology for CycleTracker, RecommendationCards, MealPlanCard, GroceryItem, PcosBadge blocks.
+4. **Convex** (`convex/`): Real-time grocery list syncing. Requires `VITE_CONVEX_URL`. Falls back to local state.
 
 ## API Routes
 - `POST /api/pcos/analyze` - AI-powered PCOS type detection
@@ -47,8 +48,12 @@ convex/
 - `GET /api/recommendations/today` - Cycle-phase recommendations
 - `GET /api/groceries/search` - Grocery search with location
 - `POST /api/meal-plan/generate` - Minimax-powered meal plan generation
+- `POST /api/voice/transcribe` - Voice-to-text symptom input (multipart audio upload)
 
 ## Recent Changes
+- Added voice-based symptom input using Minimax STT on the Log page
+- VoiceRecorder component with real-time audio visualization
+- Auto-parses transcribed text into symptoms, mood, and notes
 - Added Minimax AI integration for personalized meal plan generation
 - Added BEM CSS methodology for custom component styling
 - Added Convex real-time grocery list support

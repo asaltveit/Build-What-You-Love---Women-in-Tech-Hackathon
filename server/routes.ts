@@ -6,6 +6,8 @@ import { z } from "zod";
 import { setupAuth, isAuthenticated, registerAuthRoutes } from "./replit_integrations/auth";
 import OpenAI from "openai";
 import { generateMealPlan } from "./minimax";
+import { transcribeAudio } from "./minimax-stt";
+import multer from "multer";
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
@@ -221,6 +223,30 @@ export async function registerRoutes(
     } catch (err) {
       console.error("Meal plan generation error:", err);
       res.status(500).json({ message: "Failed to generate meal plan" });
+    }
+  });
+
+  // 7. Voice Transcription (Minimax STT)
+  const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 } });
+  app.post("/api/voice/transcribe", isAuthenticated, upload.single("audio"), async (req: any, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No audio file provided" });
+      }
+
+      const mimeType = req.file.mimetype || "audio/webm";
+      const result = await transcribeAudio(req.file.buffer, mimeType);
+
+      if (!result.text) {
+        return res.status(422).json({
+          message: "Could not transcribe audio. Please try speaking more clearly or use text input.",
+        });
+      }
+
+      res.json(result);
+    } catch (err) {
+      console.error("Voice transcription error:", err);
+      res.status(500).json({ message: "Transcription failed" });
     }
   });
 

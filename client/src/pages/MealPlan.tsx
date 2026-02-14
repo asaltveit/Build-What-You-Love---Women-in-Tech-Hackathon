@@ -161,7 +161,7 @@ export default function MealPlan() {
 
         {showGroceryList && user && (
           <ConvexGroceryList
-            userId={user.claims.sub}
+            userId={user.id}
             pcosType={profile?.pcosType || "unknown"}
             cyclePhase={phase}
           />
