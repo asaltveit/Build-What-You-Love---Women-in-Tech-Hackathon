@@ -9,7 +9,8 @@ import {
   LogOut, 
   User,
   Menu,
-  X
+  X,
+  ScanLine
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -28,6 +29,7 @@ export function Layout({ children }: LayoutProps) {
     { href: "/log", label: "Cycle Log", icon: CalendarHeart },
     { href: "/meal-plan", label: "Meal Plan", icon: ChefHat },
     { href: "/groceries", label: "Groceries", icon: ShoppingBag },
+    { href: "/fridge", label: "Fridge Scanner", icon: ScanLine },
     { href: "/profile", label: "Profile", icon: User },
   ];
 

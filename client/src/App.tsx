@@ -14,6 +14,7 @@ import Groceries from "@/pages/Groceries";
 import MealPlan from "@/pages/MealPlan";
 import Log from "@/pages/Log";
 import Profile from "@/pages/Profile";
+import FridgeScanner from "@/pages/FridgeScanner";
 import NotFound from "@/pages/not-found";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
@@ -74,6 +75,7 @@ function Router() {
       <Route path="/groceries" component={() => <ProtectedRoute component={Groceries} />} />
       <Route path="/meal-plan" component={() => <ProtectedRoute component={MealPlan} />} />
       <Route path="/log" component={() => <ProtectedRoute component={Log} />} />
+      <Route path="/fridge" component={() => <ProtectedRoute component={FridgeScanner} />} />
       <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
       
       {/* Fallback */}

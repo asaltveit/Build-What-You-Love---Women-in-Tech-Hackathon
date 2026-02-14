@@ -58,6 +58,7 @@ Preferred communication style: Simple, everyday language.
 - **Log**: Daily symptom/mood/energy logging with calendar, voice recording support
 - **MealPlan**: AI-generated weekly meal plans with grocery list integration
 - **Groceries**: Grocery search with PCOS suitability ratings, real-time Convex grocery lists
+- **FridgeScanner**: Upload/take a photo of your fridge, AI identifies items and rates them for PCOS suitability
 - **Profile**: Edit PCOS type, cycle length, period dates
 
 ### API Routes
@@ -69,6 +70,7 @@ Preferred communication style: Simple, everyday language.
 - `GET /api/groceries/search` - Search grocery items with suitability info
 - `POST /api/meal-plan/weekly` - Generate weekly meal plan via Minimax AI
 - `POST /api/voice/transcribe` - Transcribe voice audio via Minimax STT
+- `POST /api/fridge/scan` - Analyze fridge photo via OpenAI Vision, identify items with PCOS suitability
 - `GET /api/auth/user` - Get current authenticated user
 - `/api/login`, `/api/logout` - Replit Auth login/logout redirects
 

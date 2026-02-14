@@ -295,6 +295,108 @@ export async function registerRoutes(
     }
   });
 
+  // 8. Fridge Scanner (OpenAI Vision)
+  const fridgeUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+  app.post("/api/fridge/scan", isAuthenticated, fridgeUpload.single("image"), async (req: any, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No image provided" });
+      }
+
+      const userId = req.user.claims.sub;
+      const profile = await storage.getPcosProfile(userId);
+
+      const base64Image = req.file.buffer.toString("base64");
+      const mimeType = req.file.mimetype || "image/jpeg";
+
+      const visionResponse = await openai.chat.completions.create({
+        model: "gpt-5.1",
+        messages: [
+          {
+            role: "system",
+            content: `You are a grocery identification assistant for a PCOS health app. Analyze the fridge/pantry photo and identify all visible food items. For each item, provide the name, category, and an estimated quantity. Categories: protein, vegetable, fruit, grain, fat, spice, beverage, dairy, other. Return JSON: { "items": [{ "name": "string", "category": "string", "quantity": "string" }] }. Be specific with item names (e.g. "Greek Yogurt" not just "yogurt"). Only list items you can clearly identify.`,
+          },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "Identify all grocery items visible in this fridge/pantry photo." },
+              { type: "image_url", image_url: { url: `data:${mimeType};base64,${base64Image}` } },
+            ],
+          },
+        ],
+        response_format: { type: "json_object" },
+      });
+
+      const identified = JSON.parse(visionResponse.choices[0].message.content || '{"items":[]}');
+      const identifiedItems: Array<{ name: string; category: string; quantity: string }> = identified.items || [];
+
+      let phase = "follicular";
+      const pcosType = profile?.pcosType || "unknown";
+      if (profile) {
+        const today = new Date();
+        const lastPeriod = new Date(profile.lastPeriodDate);
+        const diffDays = Math.floor((today.getTime() - lastPeriod.getTime()) / (1000 * 3600 * 24)) % profile.cycleLength;
+        let mensDur = 5;
+        if (profile.lastPeriodEndDate) {
+          const endDate = new Date(profile.lastPeriodEndDate);
+          const d = Math.floor((endDate.getTime() - lastPeriod.getTime()) / (1000 * 3600 * 24)) + 1;
+          if (d >= 2 && d <= 10) mensDur = d;
+        }
+        if (diffDays < mensDur) phase = "menstrual";
+        else if (diffDays < 14) phase = "follicular";
+        else if (diffDays < 17) phase = "ovulatory";
+        else phase = "luteal";
+      }
+
+      const allGroceries = await storage.searchGroceryItems();
+
+      const results = identifiedItems.map((item) => {
+        const match = allGroceries.find(
+          (g) => g.name.toLowerCase() === item.name.toLowerCase()
+        ) || allGroceries.find(
+          (g) => g.name.toLowerCase().includes(item.name.toLowerCase()) ||
+                 item.name.toLowerCase().includes(g.name.toLowerCase())
+        );
+
+        let suitability: "recommended" | "avoid" | "neutral" = "neutral";
+        let pcosRating = "neutral";
+        let cycleRating = "neutral";
+        let benefits: string | null = null;
+
+        if (match) {
+          const pcosSuit = match.pcosSuitability as Record<string, string> | null;
+          const cycleSuit = match.cyclePhaseSuitability as Record<string, string> | null;
+          pcosRating = pcosSuit?.[pcosType] || "neutral";
+          cycleRating = cycleSuit?.[phase] || "neutral";
+          benefits = match.benefits;
+          if (pcosRating === "avoid" || cycleRating === "avoid") suitability = "avoid";
+          else if (pcosRating === "recommended" || cycleRating === "recommended") suitability = "recommended";
+        }
+
+        return {
+          name: item.name,
+          category: item.category,
+          quantity: item.quantity,
+          suitability,
+          pcosRating,
+          cycleRating,
+          benefits,
+          matched: !!match,
+        };
+      });
+
+      results.sort((a, b) => {
+        const order = { recommended: 0, neutral: 1, avoid: 2 };
+        return (order[a.suitability] || 1) - (order[b.suitability] || 1);
+      });
+
+      res.json({ items: results, phase, pcosType });
+    } catch (err) {
+      console.error("Fridge scan error:", err);
+      res.status(500).json({ message: "Failed to analyze fridge photo" });
+    }
+  });
+
   // Seed Data
   await seedDatabase();
 
