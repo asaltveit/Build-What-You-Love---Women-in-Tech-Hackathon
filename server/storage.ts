@@ -1,38 +1,76 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
+import { 
+  pcosProfiles, dailyLogs, groceryItems,
+  type PcosProfile, type InsertPcosProfile,
+  type DailyLog, type InsertDailyLog,
+  type GroceryItem, type InsertGroceryItem
+} from "@shared/schema";
+import { db } from "./db";
+import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  // PCOS Profiles
+  getPcosProfile(userId: string): Promise<PcosProfile | undefined>;
+  createOrUpdatePcosProfile(profile: InsertPcosProfile): Promise<PcosProfile>;
+
+  // Daily Logs
+  getDailyLogs(userId: string): Promise<DailyLog[]>;
+  createDailyLog(log: InsertDailyLog): Promise<DailyLog>;
+
+  // Groceries
+  searchGroceryItems(query?: string): Promise<GroceryItem[]>;
+  createGroceryItem(item: InsertGroceryItem): Promise<GroceryItem>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-
-  constructor() {
-    this.users = new Map();
+export class DatabaseStorage implements IStorage {
+  async getPcosProfile(userId: string): Promise<PcosProfile | undefined> {
+    const [profile] = await db.select().from(pcosProfiles).where(eq(pcosProfiles.userId, userId));
+    return profile;
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async createOrUpdatePcosProfile(profile: InsertPcosProfile): Promise<PcosProfile> {
+    const [existing] = await db.select().from(pcosProfiles).where(eq(pcosProfiles.userId, profile.userId));
+    
+    if (existing) {
+      const [updated] = await db
+        .update(pcosProfiles)
+        .set({ ...profile, updatedAt: new Date() })
+        .where(eq(pcosProfiles.id, existing.id))
+        .returning();
+      return updated;
+    }
+
+    const [created] = await db.insert(pcosProfiles).values(profile).returning();
+    return created;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
+  async getDailyLogs(userId: string): Promise<DailyLog[]> {
+    return db
+      .select()
+      .from(dailyLogs)
+      .where(eq(dailyLogs.userId, userId))
+      .orderBy(desc(dailyLogs.date));
+  }
+
+  async createDailyLog(log: InsertDailyLog): Promise<DailyLog> {
+    const [created] = await db.insert(dailyLogs).values(log).returning();
+    return created;
+  }
+
+  async searchGroceryItems(query?: string): Promise<GroceryItem[]> {
+    if (!query) return db.select().from(groceryItems).limit(20);
+    
+    // Simple naive search for MVP
+    const all = await db.select().from(groceryItems);
+    return all.filter(item => 
+      item.name.toLowerCase().includes(query.toLowerCase()) || 
+      item.category.toLowerCase().includes(query.toLowerCase())
     );
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  async createGroceryItem(item: InsertGroceryItem): Promise<GroceryItem> {
+    const [created] = await db.insert(groceryItems).values(item).returning();
+    return created;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
