@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import React, { useState, useCallback, useMemo, useEffect, Component, type ErrorInfo, type ReactNode } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { isConvexConfigured } from "@/lib/convex";
@@ -9,6 +9,34 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Trash2, ShoppingCart, CloudOff, Wifi, Check, AlertTriangle, Loader2 } from "lucide-react";
 import "@/styles/bem-components.css";
+
+interface ConvexErrorBoundaryProps {
+  fallback: ReactNode;
+  children: ReactNode;
+}
+
+interface ConvexErrorBoundaryState {
+  hasError: boolean;
+}
+
+class ConvexErrorBoundary extends Component<ConvexErrorBoundaryProps, ConvexErrorBoundaryState> {
+  constructor(props: ConvexErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError(): ConvexErrorBoundaryState {
+    return { hasError: true };
+  }
+  componentDidCatch(error: Error, _info: ErrorInfo) {
+    console.warn("Convex grocery list unavailable, falling back to local mode:", error.message);
+  }
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
 
 interface LocalGroceryItem {
   id: string;
@@ -333,8 +361,13 @@ function LocalOnlyList({ pcosType, cyclePhase }: { pcosType: string; cyclePhase:
 }
 
 export default function ConvexGroceryList({ userId, pcosType, cyclePhase }: ConvexGroceryListProps) {
+  const localFallback = <LocalOnlyList pcosType={pcosType} cyclePhase={cyclePhase} />;
   if (isConvexConfigured()) {
-    return <ConvexSyncedList userId={userId} pcosType={pcosType} cyclePhase={cyclePhase} />;
+    return (
+      <ConvexErrorBoundary fallback={localFallback}>
+        <ConvexSyncedList userId={userId} pcosType={pcosType} cyclePhase={cyclePhase} />
+      </ConvexErrorBoundary>
+    );
   }
-  return <LocalOnlyList pcosType={pcosType} cyclePhase={cyclePhase} />;
+  return localFallback;
 }
