@@ -11,7 +11,7 @@ A holistic cycle care application for women with PCOS. The app helps users plan 
 - **Auth**: Replit OIDC Auth
 - **AI**: OpenAI (for PCOS analysis), Minimax AI (for meal plan generation)
 - **Real-time**: Convex (for live grocery list syncing)
-- **Styling**: BEM methodology for custom component styles
+- **Styling**: TailwindCSS utility classes
 
 ## Project Structure
 ```
@@ -20,7 +20,7 @@ client/src/
   components/     - Reusable components (CycleTracker, MealPlanCard, RecommendationCards, ConvexGroceryList)
   components/ui/  - shadcn components + Layout
   hooks/          - Custom hooks (use-auth, use-pcos, use-logs, use-groceries)
-  styles/         - BEM component styles (bem-components.css)
+  styles/         - Global styles
   lib/            - Utilities (queryClient, convex)
 server/
   routes.ts       - API routes
@@ -38,8 +38,7 @@ convex/
 ## Key Integrations
 1. **Minimax AI - Meal Plans** (`server/minimax.ts`): OpenAI-compatible API at `api.minimax.chat` for personalized meal plan generation. Requires `MINIMAX_API_KEY`.
 2. **Minimax AI - Voice STT** (`server/minimax-stt.ts`): Speech-to-text transcription for voice symptom input. Uses Minimax audio transcription API. Audio recorded via Web Audio API on frontend, sent as multipart form data.
-3. **BEM CSS** (`client/src/styles/bem-components.css`): Block-Element-Modifier methodology for CycleTracker, RecommendationCards, MealPlanCard, GroceryItem, PcosBadge blocks.
-4. **Convex** (`convex/`): Real-time grocery list syncing. Requires `VITE_CONVEX_URL`. Falls back to local state.
+3. **Convex** (`convex/`): Real-time grocery list syncing. Requires `VITE_CONVEX_URL`. Falls back to local state.
 
 ### Convex on Replit (deploy from GitHub)
 - **Local setup**: Copy `.env.example` to `.env.local`, run `npx convex dev` to link/create a Convex project, then set `VITE_CONVEX_URL` in `.env.local` to the URL Convex prints (or from [dashboard.convex.dev](https://dashboard.convex.dev)).
@@ -82,3 +81,4 @@ convex/
 - VoiceRecorder component with real-time audio visualization
 - Added Convex real-time grocery list support
 - Added dietary restriction filtering (vegan, vegetarian, pescatarian, non-vegetarian) to grocery items with filter UI and per-card diet badges
+- Removed BEM CSS methodology, converted all component styles to Tailwind utility classes

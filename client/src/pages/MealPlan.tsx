@@ -9,7 +9,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import ConvexGroceryList from "@/components/ConvexGroceryList";
-import "@/styles/bem-components.css";
 
 function getCyclePhase(profile: any): string {
   if (!profile) return "follicular";
@@ -136,7 +135,17 @@ export default function MealPlan() {
             <Badge variant="outline" className="text-xs">
               Powered by Minimax AI
             </Badge>
-            <span className={`pcos-badge pcos-badge--${profile?.pcosType || "unknown"}`}>
+            <span
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                {
+                  insulin_resistant: "bg-[hsl(210,50%,90%)] text-[hsl(210,60%,35%)] dark:bg-[hsl(210,30%,20%)] dark:text-[hsl(210,50%,70%)]",
+                  inflammatory: "bg-[hsl(350,50%,90%)] text-[hsl(350,60%,35%)] dark:bg-[hsl(350,30%,20%)] dark:text-[hsl(350,50%,70%)]",
+                  adrenal: "bg-[hsl(35,50%,90%)] text-[hsl(35,60%,35%)] dark:bg-[hsl(35,30%,20%)] dark:text-[hsl(35,50%,70%)]",
+                  post_pill: "bg-[hsl(265,50%,90%)] text-[hsl(265,60%,35%)] dark:bg-[hsl(265,30%,20%)] dark:text-[hsl(265,50%,70%)]",
+                  unknown: "bg-muted text-muted-foreground",
+                }[profile?.pcosType || "unknown"] || "bg-muted text-muted-foreground"
+              }`}
+            >
               {(profile?.pcosType || "unknown").replace("_", " ")}
             </span>
           </div>
@@ -152,7 +161,14 @@ export default function MealPlan() {
                 <CardTitle>7-Day Meal Plan</CardTitle>
                 <CardDescription>
                   Starting from your{" "}
-                  <span className={`cycle-tracker__phase cycle-tracker__phase--${phase}`}>
+                  <span className={`font-semibold capitalize ${
+                    {
+                      menstrual: "text-[hsl(350,65%,55%)]",
+                      follicular: "text-[hsl(145,50%,45%)]",
+                      ovulatory: "text-[hsl(35,85%,55%)]",
+                      luteal: "text-[hsl(265,50%,55%)]",
+                    }[phase] || ""
+                  }`}>
                     {phase}
                   </span>{" "}
                   phase

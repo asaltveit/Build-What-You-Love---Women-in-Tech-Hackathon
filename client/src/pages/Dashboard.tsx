@@ -9,7 +9,6 @@ import { format } from "date-fns";
 import { motion } from "framer-motion";
 import CycleTracker from "@/components/CycleTracker";
 import RecommendationCards from "@/components/RecommendationCards";
-import "@/styles/bem-components.css";
 
 function getCycleInfo(profile: any) {
   if (!profile) return { day: 14, phase: "follicular" as const };
@@ -76,7 +75,18 @@ export default function Dashboard() {
                 <CardTitle>Current Phase</CardTitle>
                 <CardDescription>Your hormonal landscape</CardDescription>
               </div>
-              <span className={`pcos-badge pcos-badge--${profile?.pcosType || "unknown"}`} data-testid="badge-pcos-type">
+              <span
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                  {
+                    insulin_resistant: "bg-[hsl(210,50%,90%)] text-[hsl(210,60%,35%)] dark:bg-[hsl(210,30%,20%)] dark:text-[hsl(210,50%,70%)]",
+                    inflammatory: "bg-[hsl(350,50%,90%)] text-[hsl(350,60%,35%)] dark:bg-[hsl(350,30%,20%)] dark:text-[hsl(350,50%,70%)]",
+                    adrenal: "bg-[hsl(35,50%,90%)] text-[hsl(35,60%,35%)] dark:bg-[hsl(35,30%,20%)] dark:text-[hsl(35,50%,70%)]",
+                    post_pill: "bg-[hsl(265,50%,90%)] text-[hsl(265,60%,35%)] dark:bg-[hsl(265,30%,20%)] dark:text-[hsl(265,50%,70%)]",
+                    unknown: "bg-muted text-muted-foreground",
+                  }[profile?.pcosType || "unknown"] || "bg-muted text-muted-foreground"
+                }`}
+                data-testid="badge-pcos-type"
+              >
                 {(profile?.pcosType || "unknown").replace("_", " ")} PCOS
               </span>
             </div>

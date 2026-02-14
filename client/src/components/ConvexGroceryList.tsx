@@ -2,13 +2,12 @@ import React, { useState, useCallback, useMemo, useEffect, Component, type Error
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { isConvexConfigured } from "@/lib/convex";
-import { Card } from "@/components/ui/card";
+import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Trash2, ShoppingCart, CloudOff, Wifi, Check, AlertTriangle, Loader2 } from "lucide-react";
-import "@/styles/bem-components.css";
 
 interface ConvexErrorBoundaryProps {
   fallback: ReactNode;
@@ -200,30 +199,30 @@ function ConvexSyncedList({ userId, pcosType, cyclePhase }: ConvexGroceryListPro
           {items.map((item: any) => (
             <div
               key={item._id}
-              className={`grocery-item ${item.checked ? "grocery-item--checked" : ""}`}
+              className={`flex items-center gap-3 p-3 rounded-md border border-border transition-colors ${item.checked ? "opacity-60" : ""}`}
               data-testid={`grocery-item-${item._id}`}
             >
               <Checkbox
-                className="grocery-item__checkbox"
+                className="shrink-0"
                 checked={item.checked}
                 onCheckedChange={() => handleToggle(item._id)}
                 data-testid={`checkbox-grocery-${item._id}`}
               />
-              <div className="grocery-item__info">
-                <span className={`grocery-item__name ${item.checked ? "grocery-item__name--checked" : ""}`}>
+              <div className="flex-1 min-w-0">
+                <span className={`font-medium text-sm ${item.checked ? "line-through text-muted-foreground" : ""}`}>
                   {item.name}
                 </span>
-                <span className="grocery-item__category">{item.category}</span>
+                <span className="text-xs text-muted-foreground capitalize block">{item.category}</span>
                 {item.reason && (
                   <span className="text-xs text-muted-foreground block mt-0.5">{item.reason}</span>
                 )}
               </div>
-              <div className="grocery-item__badge">
+              <div className="shrink-0">
                 {item.isRecommended && (
-                  <Check className="w-4 h-4 grocery-item__badge--recommended" />
+                  <Check className="w-4 h-4 text-[hsl(145,60%,40%)]" />
                 )}
                 {item.isWarned && (
-                  <AlertTriangle className="w-4 h-4 grocery-item__badge--warned" />
+                  <AlertTriangle className="w-4 h-4 text-[hsl(350,60%,50%)]" />
                 )}
               </div>
               <Button
@@ -313,30 +312,30 @@ function LocalOnlyList({ pcosType, cyclePhase }: { pcosType: string; cyclePhase:
         {items.map((item) => (
           <div
             key={item.id}
-            className={`grocery-item ${item.checked ? "grocery-item--checked" : ""}`}
+            className={`flex items-center gap-3 p-3 rounded-md border border-border transition-colors ${item.checked ? "opacity-60" : ""}`}
             data-testid={`grocery-item-${item.id}`}
           >
             <Checkbox
-              className="grocery-item__checkbox"
+              className="shrink-0"
               checked={item.checked}
               onCheckedChange={() => toggleItem(item.id)}
               data-testid={`checkbox-grocery-${item.id}`}
             />
-            <div className="grocery-item__info">
-              <span className={`grocery-item__name ${item.checked ? "grocery-item__name--checked" : ""}`}>
+            <div className="flex-1 min-w-0">
+              <span className={`font-medium text-sm ${item.checked ? "line-through text-muted-foreground" : ""}`}>
                 {item.name}
               </span>
-              <span className="grocery-item__category">{item.category}</span>
+              <span className="text-xs text-muted-foreground capitalize block">{item.category}</span>
               {item.reason && (
                 <span className="text-xs text-muted-foreground block mt-0.5">{item.reason}</span>
               )}
             </div>
-            <div className="grocery-item__badge">
+            <div className="shrink-0">
               {item.isRecommended && (
-                <Check className="w-4 h-4 grocery-item__badge--recommended" />
+                <Check className="w-4 h-4 text-[hsl(145,60%,40%)]" />
               )}
               {item.isWarned && (
-                <AlertTriangle className="w-4 h-4 grocery-item__badge--warned" />
+                <AlertTriangle className="w-4 h-4 text-[hsl(350,60%,50%)]" />
               )}
             </div>
             <Button
