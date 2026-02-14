@@ -4,10 +4,9 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { setupAuth, isAuthenticated, registerAuthRoutes } from "./replit_integrations/auth";
-import { registerChatRoutes } from "./replit_integrations/chat";
 import OpenAI from "openai";
+import { generateMealPlan } from "./minimax";
 
-// Initialize OpenAI
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
@@ -18,10 +17,8 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   
-  // Auth & Chat Integrations
   await setupAuth(app);
   registerAuthRoutes(app);
-  registerChatRoutes(app); // Optional: if we want generic chat too
 
   // === APP ROUTES ===
 
@@ -189,6 +186,42 @@ export async function registerRoutes(
     }));
 
     res.json(results);
+  });
+
+  // 6. Meal Plan Generation (Minimax AI)
+  app.post(api.mealPlan.generate.path, isAuthenticated, async (req: any, res) => {
+    const userId = req.user.claims.sub;
+    const profile = await storage.getPcosProfile(userId);
+
+    if (!profile) {
+      return res.status(404).json({ message: "Create a PCOS profile first" });
+    }
+
+    const { preferences, allergies } = req.body;
+
+    const today = new Date();
+    const lastPeriod = new Date(profile.lastPeriodDate);
+    const diffDays = Math.floor((today.getTime() - lastPeriod.getTime()) / (1000 * 3600 * 24)) % profile.cycleLength;
+
+    let phase = "follicular";
+    if (diffDays < 5) phase = "menstrual";
+    else if (diffDays < 14) phase = "follicular";
+    else if (diffDays < 17) phase = "ovulatory";
+    else phase = "luteal";
+
+    try {
+      const mealPlan = await generateMealPlan({
+        pcosType: profile.pcosType,
+        cyclePhase: phase,
+        cycleDay: diffDays,
+        preferences,
+        allergies,
+      });
+      res.json(mealPlan);
+    } catch (err) {
+      console.error("Meal plan generation error:", err);
+      res.status(500).json({ message: "Failed to generate meal plan" });
+    }
   });
 
   // Seed Data

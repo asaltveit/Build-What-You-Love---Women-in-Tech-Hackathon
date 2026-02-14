@@ -110,7 +110,7 @@ export const api = {
       path: '/api/groceries/search' as const,
       input: z.object({
         query: z.string().optional(),
-        location: z.string().optional(), // Zip or City
+        location: z.string().optional(),
       }),
       responses: {
         200: z.array(z.object({
@@ -124,6 +124,43 @@ export const api = {
           price: z.string().optional(),
         })),
         401: errorSchemas.unauthorized,
+      },
+    },
+  },
+  mealPlan: {
+    generate: {
+      method: 'POST' as const,
+      path: '/api/meal-plan/generate' as const,
+      input: z.object({
+        preferences: z.array(z.string()).optional(),
+        allergies: z.array(z.string()).optional(),
+      }),
+      responses: {
+        200: z.object({
+          breakfast: z.object({
+            name: z.string(),
+            ingredients: z.array(z.string()),
+            benefits: z.string(),
+            prepTime: z.string(),
+          }),
+          lunch: z.object({
+            name: z.string(),
+            ingredients: z.array(z.string()),
+            benefits: z.string(),
+            prepTime: z.string(),
+          }),
+          dinner: z.object({
+            name: z.string(),
+            ingredients: z.array(z.string()),
+            benefits: z.string(),
+            prepTime: z.string(),
+          }),
+          snacks: z.array(z.string()),
+          hydration: z.string(),
+          supplements: z.array(z.string()),
+        }),
+        401: errorSchemas.unauthorized,
+        404: errorSchemas.notFound,
       },
     },
   },

@@ -11,6 +11,7 @@ import AuthPage from "@/pages/AuthPage";
 import Onboarding from "@/pages/Onboarding";
 import Dashboard from "@/pages/Dashboard";
 import Groceries from "@/pages/Groceries";
+import MealPlan from "@/pages/MealPlan";
 import Log from "@/pages/Log";
 import Profile from "@/pages/Profile";
 import NotFound from "@/pages/not-found";
@@ -71,6 +72,7 @@ function Router() {
       <Route path="/" component={DashboardWrapper} />
       <Route path="/onboarding" component={() => <ProtectedRoute component={Onboarding} />} />
       <Route path="/groceries" component={() => <ProtectedRoute component={Groceries} />} />
+      <Route path="/meal-plan" component={() => <ProtectedRoute component={MealPlan} />} />
       <Route path="/log" component={() => <ProtectedRoute component={Log} />} />
       <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
       

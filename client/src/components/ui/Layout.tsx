@@ -5,6 +5,7 @@ import {
   Home, 
   CalendarHeart, 
   ShoppingBag, 
+  ChefHat,
   LogOut, 
   User,
   Menu,
@@ -25,6 +26,7 @@ export function Layout({ children }: LayoutProps) {
   const navItems = [
     { href: "/", label: "Dashboard", icon: Home },
     { href: "/log", label: "Cycle Log", icon: CalendarHeart },
+    { href: "/meal-plan", label: "Meal Plan", icon: ChefHat },
     { href: "/groceries", label: "Groceries", icon: ShoppingBag },
     { href: "/profile", label: "Profile", icon: User },
   ];
