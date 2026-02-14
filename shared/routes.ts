@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { insertPcosProfileSchema, insertDailyLogSchema, pcosProfiles, dailyLogs, groceryItems } from './schema';
 
+export type InsertPcosProfile = z.infer<typeof insertPcosProfileSchema>;
+
 export const errorSchemas = {
   validation: z.object({
     message: z.string(),

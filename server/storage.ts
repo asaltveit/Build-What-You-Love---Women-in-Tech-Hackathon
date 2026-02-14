@@ -1,22 +1,17 @@
 import { 
   pcosProfiles, dailyLogs, groceryItems,
-  type PcosProfile, type InsertPcosProfile,
-  type DailyLog, type InsertDailyLog,
+  type PcosProfile, type InsertPcosProfileWithUser,
+  type DailyLog, type InsertDailyLogWithUser,
   type GroceryItem, type InsertGroceryItem
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
-  // PCOS Profiles
   getPcosProfile(userId: string): Promise<PcosProfile | undefined>;
-  createOrUpdatePcosProfile(profile: InsertPcosProfile): Promise<PcosProfile>;
-
-  // Daily Logs
+  createOrUpdatePcosProfile(profile: InsertPcosProfileWithUser): Promise<PcosProfile>;
   getDailyLogs(userId: string): Promise<DailyLog[]>;
-  createDailyLog(log: InsertDailyLog): Promise<DailyLog>;
-
-  // Groceries
+  createDailyLog(log: InsertDailyLogWithUser): Promise<DailyLog>;
   searchGroceryItems(query?: string): Promise<GroceryItem[]>;
   createGroceryItem(item: InsertGroceryItem): Promise<GroceryItem>;
 }
@@ -27,7 +22,7 @@ export class DatabaseStorage implements IStorage {
     return profile;
   }
 
-  async createOrUpdatePcosProfile(profile: InsertPcosProfile): Promise<PcosProfile> {
+  async createOrUpdatePcosProfile(profile: InsertPcosProfileWithUser): Promise<PcosProfile> {
     const [existing] = await db.select().from(pcosProfiles).where(eq(pcosProfiles.userId, profile.userId));
     
     if (existing) {
@@ -51,15 +46,14 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(dailyLogs.date));
   }
 
-  async createDailyLog(log: InsertDailyLog): Promise<DailyLog> {
+  async createDailyLog(log: InsertDailyLogWithUser): Promise<DailyLog> {
     const [created] = await db.insert(dailyLogs).values(log).returning();
     return created;
   }
 
   async searchGroceryItems(query?: string): Promise<GroceryItem[]> {
-    if (!query) return db.select().from(groceryItems).limit(20);
+    if (!query) return db.select().from(groceryItems).limit(50);
     
-    // Simple naive search for MVP
     const all = await db.select().from(groceryItems);
     return all.filter(item => 
       item.name.toLowerCase().includes(query.toLowerCase()) || 

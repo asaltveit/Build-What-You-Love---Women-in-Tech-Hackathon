@@ -85,16 +85,9 @@ export async function registerRoutes(
     const userId = req.user.claims.sub;
     const input = api.pcos.updateProfile.input.parse(req.body);
     
-    // Ensure userId matches auth
-    if (input.userId !== userId) {
-      // Force override userId to authenticated user for safety
-      // But actually the schema input might expect userId. 
-      // Ideally we shouldn't trust client userId, but for now we'll just use the auth one.
-    }
-    
     const profile = await storage.createOrUpdatePcosProfile({
       ...input,
-      userId // Override with authenticated user
+      userId,
     });
     res.json(profile);
   });
@@ -258,25 +251,46 @@ export async function registerRoutes(
 
 async function seedDatabase() {
   const existing = await storage.searchGroceryItems();
-  if (existing.length > 0) return;
+  if (existing.length > 7) return;
 
   const foods = [
-    { name: "Wild Salmon", category: "protein" },
-    { name: "Spinach", category: "vegetable" },
-    { name: "Berries", category: "fruit" },
-    { name: "Quinoa", category: "grain" },
-    { name: "Avocado", category: "fat" },
-    { name: "Turmeric", category: "spice" },
-    { name: "Green Tea", category: "beverage" },
+    { name: "Wild Salmon", category: "protein", benefits: "Rich in omega-3 fatty acids, reduces inflammation and supports hormone balance", pcosSuitability: { insulin_resistant: "recommended" as const, inflammatory: "recommended" as const, adrenal: "recommended" as const, post_pill: "recommended" as const }, cyclePhaseSuitability: { menstrual: "recommended" as const, follicular: "recommended" as const, ovulatory: "recommended" as const, luteal: "recommended" as const } },
+    { name: "Spinach", category: "vegetable", benefits: "High in iron and folate, essential during menstruation and for hormone production", pcosSuitability: { insulin_resistant: "recommended" as const, inflammatory: "recommended" as const, adrenal: "recommended" as const, post_pill: "recommended" as const }, cyclePhaseSuitability: { menstrual: "recommended" as const, follicular: "recommended" as const, ovulatory: "neutral" as const, luteal: "recommended" as const } },
+    { name: "Blueberries", category: "fruit", benefits: "Packed with antioxidants that fight inflammation and support insulin sensitivity", pcosSuitability: { insulin_resistant: "recommended" as const, inflammatory: "recommended" as const, adrenal: "recommended" as const, post_pill: "recommended" as const }, cyclePhaseSuitability: { menstrual: "recommended" as const, follicular: "recommended" as const, ovulatory: "recommended" as const, luteal: "recommended" as const } },
+    { name: "Quinoa", category: "grain", benefits: "Complete protein with low glycemic index, stabilizes blood sugar", pcosSuitability: { insulin_resistant: "recommended" as const, inflammatory: "recommended" as const, adrenal: "neutral" as const, post_pill: "recommended" as const }, cyclePhaseSuitability: { menstrual: "neutral" as const, follicular: "recommended" as const, ovulatory: "recommended" as const, luteal: "recommended" as const } },
+    { name: "Avocado", category: "fat", benefits: "Healthy monounsaturated fats support hormone production and reduce inflammation", pcosSuitability: { insulin_resistant: "recommended" as const, inflammatory: "recommended" as const, adrenal: "recommended" as const, post_pill: "recommended" as const }, cyclePhaseSuitability: { menstrual: "recommended" as const, follicular: "recommended" as const, ovulatory: "recommended" as const, luteal: "recommended" as const } },
+    { name: "Turmeric", category: "spice", benefits: "Powerful anti-inflammatory that helps manage PCOS symptoms", pcosSuitability: { insulin_resistant: "recommended" as const, inflammatory: "recommended" as const, adrenal: "neutral" as const, post_pill: "neutral" as const }, cyclePhaseSuitability: { menstrual: "recommended" as const, follicular: "neutral" as const, ovulatory: "neutral" as const, luteal: "recommended" as const } },
+    { name: "Green Tea", category: "beverage", benefits: "Contains EGCG which improves insulin sensitivity and supports weight management", pcosSuitability: { insulin_resistant: "recommended" as const, inflammatory: "recommended" as const, adrenal: "avoid" as const, post_pill: "recommended" as const }, cyclePhaseSuitability: { menstrual: "neutral" as const, follicular: "recommended" as const, ovulatory: "recommended" as const, luteal: "neutral" as const } },
+    { name: "Sweet Potato", category: "vegetable", benefits: "Complex carbs with low GI, rich in vitamin A for hormone health", pcosSuitability: { insulin_resistant: "recommended" as const, inflammatory: "recommended" as const, adrenal: "recommended" as const, post_pill: "recommended" as const }, cyclePhaseSuitability: { menstrual: "recommended" as const, follicular: "neutral" as const, ovulatory: "neutral" as const, luteal: "recommended" as const } },
+    { name: "Walnuts", category: "fat", benefits: "Omega-3s and healthy fats that reduce androgens and improve insulin response", pcosSuitability: { insulin_resistant: "recommended" as const, inflammatory: "recommended" as const, adrenal: "recommended" as const, post_pill: "recommended" as const }, cyclePhaseSuitability: { menstrual: "recommended" as const, follicular: "recommended" as const, ovulatory: "neutral" as const, luteal: "recommended" as const } },
+    { name: "Lentils", category: "protein", benefits: "Plant protein with fiber that stabilizes blood sugar and supports gut health", pcosSuitability: { insulin_resistant: "recommended" as const, inflammatory: "recommended" as const, adrenal: "neutral" as const, post_pill: "recommended" as const }, cyclePhaseSuitability: { menstrual: "neutral" as const, follicular: "recommended" as const, ovulatory: "recommended" as const, luteal: "recommended" as const } },
+    { name: "Broccoli", category: "vegetable", benefits: "Contains DIM which helps metabolize excess estrogen, supports detoxification", pcosSuitability: { insulin_resistant: "recommended" as const, inflammatory: "recommended" as const, adrenal: "recommended" as const, post_pill: "recommended" as const }, cyclePhaseSuitability: { menstrual: "neutral" as const, follicular: "recommended" as const, ovulatory: "recommended" as const, luteal: "recommended" as const } },
+    { name: "Chia Seeds", category: "fat", benefits: "High in omega-3 and fiber, helps stabilize blood sugar levels", pcosSuitability: { insulin_resistant: "recommended" as const, inflammatory: "recommended" as const, adrenal: "recommended" as const, post_pill: "recommended" as const }, cyclePhaseSuitability: { menstrual: "recommended" as const, follicular: "recommended" as const, ovulatory: "recommended" as const, luteal: "recommended" as const } },
+    { name: "Eggs", category: "protein", benefits: "Complete protein with choline for hormone support, vitamin D for fertility", pcosSuitability: { insulin_resistant: "recommended" as const, inflammatory: "neutral" as const, adrenal: "recommended" as const, post_pill: "recommended" as const }, cyclePhaseSuitability: { menstrual: "recommended" as const, follicular: "recommended" as const, ovulatory: "recommended" as const, luteal: "recommended" as const } },
+    { name: "Ginger", category: "spice", benefits: "Anti-inflammatory, eases menstrual cramps and supports digestion", pcosSuitability: { insulin_resistant: "recommended" as const, inflammatory: "recommended" as const, adrenal: "neutral" as const, post_pill: "neutral" as const }, cyclePhaseSuitability: { menstrual: "recommended" as const, follicular: "neutral" as const, ovulatory: "neutral" as const, luteal: "recommended" as const } },
+    { name: "Chicken Breast", category: "protein", benefits: "Lean protein that supports muscle repair and hormone production", pcosSuitability: { insulin_resistant: "recommended" as const, inflammatory: "neutral" as const, adrenal: "recommended" as const, post_pill: "recommended" as const }, cyclePhaseSuitability: { menstrual: "neutral" as const, follicular: "recommended" as const, ovulatory: "recommended" as const, luteal: "recommended" as const } },
+    { name: "Kale", category: "vegetable", benefits: "Nutrient-dense with calcium, vitamin K, supports detoxification", pcosSuitability: { insulin_resistant: "recommended" as const, inflammatory: "recommended" as const, adrenal: "recommended" as const, post_pill: "recommended" as const }, cyclePhaseSuitability: { menstrual: "recommended" as const, follicular: "recommended" as const, ovulatory: "recommended" as const, luteal: "recommended" as const } },
+    { name: "Cinnamon", category: "spice", benefits: "Improves insulin sensitivity and helps regulate blood sugar levels", pcosSuitability: { insulin_resistant: "recommended" as const, inflammatory: "neutral" as const, adrenal: "neutral" as const, post_pill: "neutral" as const }, cyclePhaseSuitability: { menstrual: "neutral" as const, follicular: "recommended" as const, ovulatory: "neutral" as const, luteal: "recommended" as const } },
+    { name: "Greek Yogurt", category: "dairy", benefits: "Probiotics for gut health, protein for satiety, calcium for bones", pcosSuitability: { insulin_resistant: "recommended" as const, inflammatory: "avoid" as const, adrenal: "neutral" as const, post_pill: "recommended" as const }, cyclePhaseSuitability: { menstrual: "neutral" as const, follicular: "recommended" as const, ovulatory: "recommended" as const, luteal: "neutral" as const } },
+    { name: "Flaxseeds", category: "fat", benefits: "Lignans that help balance estrogen, rich in omega-3 fatty acids", pcosSuitability: { insulin_resistant: "recommended" as const, inflammatory: "recommended" as const, adrenal: "recommended" as const, post_pill: "recommended" as const }, cyclePhaseSuitability: { menstrual: "recommended" as const, follicular: "recommended" as const, ovulatory: "neutral" as const, luteal: "recommended" as const } },
+    { name: "Dark Chocolate (85%+)", category: "other", benefits: "Magnesium-rich, reduces cravings and supports mood during luteal phase", pcosSuitability: { insulin_resistant: "neutral" as const, inflammatory: "neutral" as const, adrenal: "recommended" as const, post_pill: "neutral" as const }, cyclePhaseSuitability: { menstrual: "recommended" as const, follicular: "neutral" as const, ovulatory: "neutral" as const, luteal: "recommended" as const } },
+    { name: "Bone Broth", category: "protein", benefits: "Collagen and amino acids that support gut lining and reduce inflammation", pcosSuitability: { insulin_resistant: "recommended" as const, inflammatory: "recommended" as const, adrenal: "recommended" as const, post_pill: "recommended" as const }, cyclePhaseSuitability: { menstrual: "recommended" as const, follicular: "neutral" as const, ovulatory: "neutral" as const, luteal: "recommended" as const } },
+    { name: "Cauliflower", category: "vegetable", benefits: "Contains DIM for estrogen metabolism, low-carb alternative to grains", pcosSuitability: { insulin_resistant: "recommended" as const, inflammatory: "recommended" as const, adrenal: "recommended" as const, post_pill: "recommended" as const }, cyclePhaseSuitability: { menstrual: "neutral" as const, follicular: "recommended" as const, ovulatory: "recommended" as const, luteal: "recommended" as const } },
+    { name: "Pumpkin Seeds", category: "fat", benefits: "Zinc for hormone balance, magnesium for stress reduction", pcosSuitability: { insulin_resistant: "recommended" as const, inflammatory: "recommended" as const, adrenal: "recommended" as const, post_pill: "recommended" as const }, cyclePhaseSuitability: { menstrual: "neutral" as const, follicular: "neutral" as const, ovulatory: "recommended" as const, luteal: "recommended" as const } },
+    { name: "Sardines", category: "protein", benefits: "High in omega-3, vitamin D and calcium for bone and hormone health", pcosSuitability: { insulin_resistant: "recommended" as const, inflammatory: "recommended" as const, adrenal: "recommended" as const, post_pill: "recommended" as const }, cyclePhaseSuitability: { menstrual: "recommended" as const, follicular: "recommended" as const, ovulatory: "neutral" as const, luteal: "recommended" as const } },
+    { name: "Apple Cider Vinegar", category: "other", benefits: "Supports insulin sensitivity and digestive health", pcosSuitability: { insulin_resistant: "recommended" as const, inflammatory: "neutral" as const, adrenal: "neutral" as const, post_pill: "neutral" as const }, cyclePhaseSuitability: { menstrual: "neutral" as const, follicular: "recommended" as const, ovulatory: "neutral" as const, luteal: "neutral" as const } },
+    { name: "Processed Sugar", category: "other", benefits: "Spikes blood sugar and worsens insulin resistance", pcosSuitability: { insulin_resistant: "avoid" as const, inflammatory: "avoid" as const, adrenal: "avoid" as const, post_pill: "avoid" as const }, cyclePhaseSuitability: { menstrual: "avoid" as const, follicular: "avoid" as const, ovulatory: "avoid" as const, luteal: "avoid" as const } },
+    { name: "White Bread", category: "grain", benefits: "High glycemic index, spikes insulin levels", pcosSuitability: { insulin_resistant: "avoid" as const, inflammatory: "avoid" as const, adrenal: "neutral" as const, post_pill: "neutral" as const }, cyclePhaseSuitability: { menstrual: "avoid" as const, follicular: "avoid" as const, ovulatory: "neutral" as const, luteal: "avoid" as const } },
+    { name: "Soda", category: "beverage", benefits: "High sugar content worsens insulin resistance and inflammation", pcosSuitability: { insulin_resistant: "avoid" as const, inflammatory: "avoid" as const, adrenal: "avoid" as const, post_pill: "avoid" as const }, cyclePhaseSuitability: { menstrual: "avoid" as const, follicular: "avoid" as const, ovulatory: "avoid" as const, luteal: "avoid" as const } },
   ];
 
   for (const food of foods) {
     await storage.createGroceryItem({
       name: food.name,
       category: food.category,
-      benefits: "Anti-inflammatory",
-      pcosSuitability: {},
-      cyclePhaseSuitability: {}
+      benefits: food.benefits,
+      pcosSuitability: food.pcosSuitability,
+      cyclePhaseSuitability: food.cyclePhaseSuitability,
     });
   }
 }

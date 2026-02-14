@@ -41,15 +41,21 @@ export const groceryItems = pgTable("grocery_items", {
 
 // === SCHEMAS ===
 
-export const insertPcosProfileSchema = createInsertSchema(pcosProfiles).omit({ 
+const fullInsertPcosProfileSchema = createInsertSchema(pcosProfiles).omit({ 
   id: true, 
-  userId: true, 
   updatedAt: true 
 });
 
-export const insertDailyLogSchema = createInsertSchema(dailyLogs).omit({ 
-  id: true, 
-  userId: true 
+export const insertPcosProfileSchema = fullInsertPcosProfileSchema.omit({
+  userId: true
+});
+
+const fullInsertDailyLogSchema = createInsertSchema(dailyLogs).omit({ 
+  id: true 
+});
+
+export const insertDailyLogSchema = fullInsertDailyLogSchema.omit({
+  userId: true
 });
 
 export const insertGroceryItemSchema = createInsertSchema(groceryItems).omit({
@@ -60,9 +66,11 @@ export const insertGroceryItemSchema = createInsertSchema(groceryItems).omit({
 
 export type PcosProfile = typeof pcosProfiles.$inferSelect;
 export type InsertPcosProfile = z.infer<typeof insertPcosProfileSchema>;
+export type InsertPcosProfileWithUser = z.infer<typeof fullInsertPcosProfileSchema>;
 
 export type DailyLog = typeof dailyLogs.$inferSelect;
 export type InsertDailyLog = z.infer<typeof insertDailyLogSchema>;
+export type InsertDailyLogWithUser = z.infer<typeof fullInsertDailyLogSchema>;
 
 export type GroceryItem = typeof groceryItems.$inferSelect;
 export type InsertGroceryItem = z.infer<typeof insertGroceryItemSchema>;
