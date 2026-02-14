@@ -40,6 +40,11 @@ convex/
 2. **BEM CSS** (`client/src/styles/bem-components.css`): Custom component styles following Block-Element-Modifier methodology for CycleTracker, RecommendationCards, MealPlanCard, GroceryItem, and PcosBadge blocks.
 3. **Convex** (`convex/`): Real-time backend for grocery list syncing. Requires `VITE_CONVEX_URL` env var. Falls back to local state when not configured.
 
+### Convex on Replit (deploy from GitHub)
+- **Local setup**: Copy `.env.example` to `.env.local`, run `npx convex dev` to link/create a Convex project, then set `VITE_CONVEX_URL` in `.env.local` to the URL Convex prints (or from [dashboard.convex.dev](https://dashboard.convex.dev)).
+- **Replit**: So the deployed app uses Convex, add a **Secret** in Replit: **Tools → Secrets** → add `VITE_CONVEX_URL` with your Convex deployment URL (same as local). Vite bakes this into the client at build time, so the secret must be set before Replit runs the build (e.g. before the first deploy after pushing from GitHub).
+- Convex backend runs in Convex’s cloud; Replit only needs the URL. No need to run `convex dev` or `convex deploy` on Replit.
+
 ## API Routes
 - `POST /api/pcos/analyze` - AI-powered PCOS type detection
 - `GET/POST /api/pcos/profile` - PCOS profile CRUD
