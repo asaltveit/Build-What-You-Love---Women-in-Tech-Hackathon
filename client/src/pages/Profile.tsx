@@ -28,12 +28,14 @@ export default function Profile() {
   const [pcosType, setPcosType] = useState<string>("");
   const [cycleLength, setCycleLength] = useState<string>("");
   const [lastPeriodDate, setLastPeriodDate] = useState<string>("");
+  const [lastPeriodEndDate, setLastPeriodEndDate] = useState<string>("");
   const [isEditing, setIsEditing] = useState(false);
 
   const startEditing = () => {
     setPcosType(profile?.pcosType || "unknown");
     setCycleLength(String(profile?.cycleLength || 28));
     setLastPeriodDate(profile?.lastPeriodDate || new Date().toISOString().split("T")[0]);
+    setLastPeriodEndDate(profile?.lastPeriodEndDate || "");
     setIsEditing(true);
   };
 
@@ -53,6 +55,7 @@ export default function Profile() {
         pcosType,
         cycleLength: length,
         lastPeriodDate,
+        lastPeriodEndDate: lastPeriodEndDate || undefined,
         symptoms: profile?.symptoms || [],
       },
       {
@@ -192,6 +195,36 @@ export default function Profile() {
                   <p className="text-lg font-medium mt-1" data-testid="text-last-period">
                     {profile?.lastPeriodDate
                       ? new Date(profile.lastPeriodDate + "T00:00:00").toLocaleDateString("en-US", {
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      : "Not set"}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-primary/10 rounded-md">
+                <CalendarDays className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <Label className="text-sm text-muted-foreground">Last Period End Date</Label>
+                {isEditing ? (
+                  <Input
+                    type="date"
+                    value={lastPeriodEndDate}
+                    onChange={(e) => setLastPeriodEndDate(e.target.value)}
+                    className="mt-1 w-48"
+                    max={new Date().toISOString().split("T")[0]}
+                    min={lastPeriodDate || undefined}
+                    data-testid="input-last-period-end"
+                  />
+                ) : (
+                  <p className="text-lg font-medium mt-1" data-testid="text-last-period-end">
+                    {profile?.lastPeriodEndDate
+                      ? new Date(profile.lastPeriodEndDate + "T00:00:00").toLocaleDateString("en-US", {
                           month: "long",
                           day: "numeric",
                           year: "numeric",

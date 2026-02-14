@@ -12,9 +12,10 @@ export * from "./models/chat";
 export const pcosProfiles = pgTable("pcos_profiles", {
   id: serial("id").primaryKey(),
   userId: text("user_id").notNull().references(() => users.id),
-  pcosType: text("pcos_type").notNull(), // 'insulin_resistant', 'inflammatory', 'adrenal', 'post_pill', 'unknown'
+  pcosType: text("pcos_type").notNull(),
   cycleLength: integer("cycle_length").default(28).notNull(),
   lastPeriodDate: date("last_period_date").notNull(),
+  lastPeriodEndDate: date("last_period_end_date"),
   symptoms: jsonb("symptoms").$type<string[]>().default([]),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -30,13 +31,23 @@ export const dailyLogs = pgTable("daily_logs", {
   notes: text("notes"),
 });
 
+export interface StorePricing {
+  store: string;
+  priceRange: string;
+  available: boolean;
+}
+
+export type DietaryTag = "vegan" | "vegetarian" | "pescatarian" | "non_vegetarian";
+
 export const groceryItems = pgTable("grocery_items", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  category: text("category").notNull(), // 'protein', 'vegetable', 'fruit', 'grain', 'fat', 'other'
+  category: text("category").notNull(),
   benefits: text("benefits"),
   pcosSuitability: jsonb("pcos_suitability").$type<Record<string, "recommended" | "avoid" | "neutral">>(),
   cyclePhaseSuitability: jsonb("cycle_phase_suitability").$type<Record<string, "recommended" | "avoid" | "neutral">>(),
+  storePricing: jsonb("store_pricing").$type<StorePricing[]>(),
+  dietaryTags: jsonb("dietary_tags").$type<DietaryTag[]>().default([]),
 });
 
 // === SCHEMAS ===
