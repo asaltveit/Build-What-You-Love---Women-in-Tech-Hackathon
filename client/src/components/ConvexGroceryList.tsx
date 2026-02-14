@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { isConvexConfigured } from "@/lib/convex";
+import { useState, useCallback, useMemo } from "react";
+import { isConvexConfigured, convex } from "@/lib/convex";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Trash2, ShoppingCart, CloudOff, Check, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, ShoppingCart, CloudOff, Wifi, Check, AlertTriangle } from "lucide-react";
 import "@/styles/bem-components.css";
 
 interface GroceryListItem {
@@ -26,28 +26,58 @@ interface ConvexGroceryListProps {
   cyclePhase: string;
 }
 
+function getDefaultItems(pcosType: string, cyclePhase: string): GroceryListItem[] {
+  const phaseItems: Record<string, GroceryListItem[]> = {
+    menstrual: [
+      { id: "m1", name: "Wild Salmon", category: "protein", quantity: 1, unit: "lb", checked: false, isRecommended: true, isWarned: false, reason: "Omega-3s help reduce menstrual cramps" },
+      { id: "m2", name: "Spinach", category: "vegetable", quantity: 1, unit: "bunch", checked: false, isRecommended: true, isWarned: false, reason: "Iron-rich to replenish during menstruation" },
+      { id: "m3", name: "Dark Chocolate (70%+)", category: "snack", quantity: 1, unit: "bar", checked: false, isRecommended: true, isWarned: false, reason: "Magnesium supports muscle relaxation" },
+      { id: "m4", name: "Red Lentils", category: "legume", quantity: 1, unit: "bag", checked: false, isRecommended: true, isWarned: false, reason: "Plant-based iron and protein" },
+      { id: "m5", name: "Sugary Drinks", category: "beverage", quantity: 1, unit: "each", checked: false, isRecommended: false, isWarned: true, reason: "Sugar increases inflammation during menstruation" },
+    ],
+    follicular: [
+      { id: "f1", name: "Avocado", category: "fruit", quantity: 2, unit: "each", checked: false, isRecommended: true, isWarned: false, reason: "Healthy fats support rising estrogen" },
+      { id: "f2", name: "Kale", category: "vegetable", quantity: 1, unit: "bunch", checked: false, isRecommended: true, isWarned: false, reason: "Supports estrogen metabolism" },
+      { id: "f3", name: "Quinoa", category: "grain", quantity: 1, unit: "bag", checked: false, isRecommended: true, isWarned: false, reason: "Complete protein for follicle development" },
+      { id: "f4", name: "Blueberries", category: "fruit", quantity: 1, unit: "pint", checked: false, isRecommended: true, isWarned: false, reason: "Antioxidant-rich, low glycemic index" },
+      { id: "f5", name: "White Bread", category: "grain", quantity: 1, unit: "loaf", checked: false, isRecommended: false, isWarned: true, reason: "Refined carbs can spike insulin levels" },
+    ],
+    ovulatory: [
+      { id: "o1", name: "Greek Yogurt", category: "dairy", quantity: 1, unit: "tub", checked: false, isRecommended: true, isWarned: false, reason: "Probiotics support gut health at peak fertility" },
+      { id: "o2", name: "Mixed Greens", category: "vegetable", quantity: 1, unit: "bag", checked: false, isRecommended: true, isWarned: false, reason: "Raw vegetables for peak anti-inflammatory support" },
+      { id: "o3", name: "Brazil Nuts", category: "nut", quantity: 1, unit: "bag", checked: false, isRecommended: true, isWarned: false, reason: "Selenium supports thyroid and ovulation" },
+      { id: "o4", name: "Cod Fillet", category: "protein", quantity: 1, unit: "lb", checked: false, isRecommended: true, isWarned: false, reason: "Light protein, rich in vitamin D" },
+      { id: "o5", name: "Processed Meats", category: "protein", quantity: 1, unit: "each", checked: false, isRecommended: false, isWarned: true, reason: "Excess sodium increases bloating" },
+    ],
+    luteal: [
+      { id: "l1", name: "Sweet Potatoes", category: "vegetable", quantity: 2, unit: "each", checked: false, isRecommended: true, isWarned: false, reason: "Complex carbs for luteal phase energy" },
+      { id: "l2", name: "Pumpkin Seeds", category: "seed", quantity: 1, unit: "bag", checked: false, isRecommended: true, isWarned: false, reason: "Magnesium helps reduce PMS symptoms" },
+      { id: "l3", name: "Turkey", category: "protein", quantity: 1, unit: "lb", checked: false, isRecommended: true, isWarned: false, reason: "Tryptophan supports serotonin production" },
+      { id: "l4", name: "Bananas", category: "fruit", quantity: 4, unit: "each", checked: false, isRecommended: true, isWarned: false, reason: "B6 and potassium reduce water retention" },
+      { id: "l5", name: "Caffeine", category: "beverage", quantity: 1, unit: "each", checked: false, isRecommended: false, isWarned: true, reason: "Can worsen anxiety and sleep issues in luteal phase" },
+    ],
+  };
+
+  return phaseItems[cyclePhase] || phaseItems.follicular;
+}
+
 export default function ConvexGroceryList({ userId, pcosType, cyclePhase }: ConvexGroceryListProps) {
   const configured = isConvexConfigured();
-  const [items, setItems] = useState<GroceryListItem[]>([
-    { id: "1", name: "Wild Salmon", category: "protein", quantity: 1, unit: "lb", checked: false, isRecommended: true, isWarned: false, reason: "Rich in omega-3, great for anti-inflammatory support" },
-    { id: "2", name: "Spinach", category: "vegetable", quantity: 1, unit: "bunch", checked: false, isRecommended: true, isWarned: false, reason: "Iron-rich, supports hormone balance" },
-    { id: "3", name: "Blueberries", category: "fruit", quantity: 1, unit: "pint", checked: false, isRecommended: true, isWarned: false, reason: "Antioxidant-rich, low glycemic index" },
-    { id: "4", name: "Sweet Potatoes", category: "vegetable", quantity: 2, unit: "each", checked: false, isRecommended: true, isWarned: false, reason: "Complex carbs, great for luteal phase energy" },
-    { id: "5", name: "White Bread", category: "grain", quantity: 1, unit: "loaf", checked: false, isRecommended: false, isWarned: true, reason: "Refined carbs can spike insulin levels" },
-  ]);
+  const defaultItems = useMemo(() => getDefaultItems(pcosType, cyclePhase), [pcosType, cyclePhase]);
+  const [items, setItems] = useState<GroceryListItem[]>(defaultItems);
   const [newItem, setNewItem] = useState("");
 
-  const toggleItem = (id: string) => {
+  const toggleItem = useCallback((id: string) => {
     setItems(prev => prev.map(item =>
       item.id === id ? { ...item, checked: !item.checked } : item
     ));
-  };
+  }, []);
 
-  const removeItem = (id: string) => {
+  const removeItem = useCallback((id: string) => {
     setItems(prev => prev.filter(item => item.id !== id));
-  };
+  }, []);
 
-  const addItem = () => {
+  const addItem = useCallback(() => {
     if (!newItem.trim()) return;
     const item: GroceryListItem = {
       id: Date.now().toString(),
@@ -61,7 +91,7 @@ export default function ConvexGroceryList({ userId, pcosType, cyclePhase }: Conv
     };
     setItems(prev => [...prev, item]);
     setNewItem("");
-  };
+  }, [newItem]);
 
   const checkedCount = items.filter(i => i.checked).length;
 
@@ -70,10 +100,10 @@ export default function ConvexGroceryList({ userId, pcosType, cyclePhase }: Conv
       <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
         <div className="flex items-center gap-2">
           <ShoppingCart className="w-4 h-4 text-muted-foreground" />
-          <h3 className="font-semibold text-sm">Smart Grocery List</h3>
+          <h3 className="font-semibold text-sm" data-testid="text-grocery-title">Smart Grocery List</h3>
           {configured ? (
             <Badge variant="secondary" className="text-xs">
-              Convex Real-time
+              <Wifi className="w-3 h-3 mr-1" /> Convex Sync
             </Badge>
           ) : (
             <Badge variant="outline" className="text-xs">
@@ -81,7 +111,7 @@ export default function ConvexGroceryList({ userId, pcosType, cyclePhase }: Conv
             </Badge>
           )}
         </div>
-        <span className="text-xs text-muted-foreground">
+        <span className="text-xs text-muted-foreground" data-testid="text-grocery-count">
           {checkedCount}/{items.length} items
         </span>
       </div>
@@ -142,7 +172,7 @@ export default function ConvexGroceryList({ userId, pcosType, cyclePhase }: Conv
       </div>
 
       {items.length === 0 && (
-        <div className="text-center py-6 text-sm text-muted-foreground">
+        <div className="text-center py-6 text-sm text-muted-foreground" data-testid="text-empty-grocery">
           Your grocery list is empty. Add items or generate from your meal plan.
         </div>
       )}
